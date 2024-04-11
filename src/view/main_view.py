@@ -60,7 +60,8 @@ def display_matchs(tournament_datas, nb_matchs_restants, matchs_to_play):
 
     print("\n")
     print(f"{tournament_datas["club id"]} club, from {tournament_datas["ville"]}")
-    print(f"Round number {tournament_datas["tour en cours"]} in progress, {nb_matchs_restants} more match(s) to play.\n")
+    print(f"Round number {tournament_datas["tour en cours"]} in progress, "
+          f"{nb_matchs_restants} more match(s) to play.\n")
     print("Choose a match :")
 
     for j in range(len(matchs_to_play)):
