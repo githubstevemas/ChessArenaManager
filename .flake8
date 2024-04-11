@@ -1,0 +1,3 @@
+[flake8]
+exclude = env,external_libs
+max-line-length = 119
