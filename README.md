@@ -1,4 +1,4 @@
-# Chess Arena Manager :chess:
+# Chess Arena Manager ♟️
 
 This script facilitates the organization and management of chess tournaments, including player registration, round tracking, match scheduling, and result recording.
 
