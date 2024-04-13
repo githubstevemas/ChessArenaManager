@@ -1,9 +1,12 @@
 import json
+import os.path
 from datetime import datetime
 
 from src.view import main_view
+from src.view import player_view
 from src.model.tournament_model import Tournament
 from src.model.player_model import Player
+from src.view.report_view import Table
 
 
 class TournamentController:
@@ -12,38 +15,87 @@ class TournamentController:
 
         self.tournament_model = Tournament()
         self.players = Player()
+        self.table_view = Table()
 
     def main(self):
 
         while True:
             main_view.main()
-            choice = int(input("Your choice ? "))
+            main_choice = int(input("Your choice ? "))
 
-            if choice == 1:
-                main_view.create_tournament()
-                create_choice = int(input("Your choice ? "))
+            if main_choice == 1:
+                # create tournament
+                user_choice = main_view.ask_for_create()
 
-                if create_choice == 2:
+                if user_choice == 1:
+                    pass
+
+                elif user_choice == 2:
                     self.create_random_tournament()
-                    self.generate_new_round()
+                    # self.generate_new_round()
 
-            elif choice == 2:
+            elif main_choice == 2:
+                # player menu
+                player_view.player_menu()
+                player_menu_choice = int(input("Your choice ? "))
+
+                if player_menu_choice == 1:
+                    # create player
+                    create_choice = main_view.ask_for_create()
+
+                    if create_choice == 1:
+                        # add player manualy
+                        player_datas = {"id": player_view.add_player_id(), "first name": player_view.add_player_firstname(),
+                                        "last name": player_view.add_player_lastname(),
+                                        "birthdate": player_view.add_player_birthdate()}
+                        self.players.write_player_datas(player_datas)
+                        main_view.display_created(player=True)
+                    elif create_choice == 2:
+                        # add player randomly
+                        self.players.add_players_randomly(1)
+                        main_view.display_created(player=True)
+                elif player_menu_choice == 2:
+                    # add player to tournament
+                    if os.path.exists("datas/tournaments/tournaments_datas.json"):
+                        tournaments = self.tournament_model.load_tournaments_datas()
+                        tournament_choice = input(player_view.choose_tournament(tournaments))
+                        players = self.players.load_players_datas()
+                        player_choice = input(player_view.choose_player(players))
+
+                        """ ajouter la methode pour ajouter un joueur a un tournois donné"""
+
+            elif main_choice == 3:
+                # run tournaments
                 self.run_tournament_menu()
 
-            elif choice == 3:
-                tournaments_datas = self.load_tournaments_datas()
-                main_view.display_tournaments(tournaments_datas)
-                main_view.pause_display()
-                self.main()
+            elif main_choice == 4:
+                # print reports
+                reports_choice = main_view.reports_menu()
+
+                if reports_choice == 1:
+                    if os.path.exists("datas/tournaments/players.json"):
+                        datas = self.players.load_players_datas()
+                        self.table_view.print_table(datas)
+                    else:
+                        main_view.no_players()
+                    main_view.pause_display()
+
+                elif reports_choice == 2:
+                    if os.path.exists("datas/tournaments/tournaments_datas.json"):
+                        datas = self.load_tournaments_datas()
+                        self.table_view.print_table(datas)
+                    else:
+                        main_view.no_tournament()
+                    main_view.pause_display()
+
 
     def create_random_tournament(self):
 
         self.tournament_model.create_tournament()
-        tournaments_datas = self.load_tournaments_datas()
-        self.players.add_players(16, tournaments_datas)
-        self.players.generate_pairs(self.players.players_list)
 
-        main_view.display_created()
+        # self.players.generate_pairs(self.players.players_list)
+
+        main_view.display_created(tournament=True)
 
     def generate_new_round(self):
 
@@ -51,11 +103,13 @@ class TournamentController:
         self.tournament_model.write_round_datas(tournaments_datas[-1], self.players.pair_players)
 
     def load_tournaments_datas(self):
-        with open("datas/tournaments/tournament_datas.json", "r") as file:
+
+        with open("datas/tournaments/tournaments_datas.json", "r") as file:
             return json.load(file)
 
-    def load_round_datas(self, tournament_datas):
-        with open(f"datas/tournaments/{tournament_datas["club id"]}/round {tournament_datas["tour en cours"]}.json",
+    def load_round_datas(self, tournaments_datas):
+
+        with open(f"datas/tournaments/{tournaments_datas["tournament name"]}/round {tournaments_datas["current turn"]}.json",
                   "r") as file:
             return json.load(file)
 
@@ -65,9 +119,9 @@ class TournamentController:
         tournois_cours = []
 
         for i in tournaments_datas:
-            if i["date de debut"] == "Non defini":
+            if i["start date"] == "Non defini":
                 tournois_cours.append(i)
-            elif i["date de fin"] == "Non defini":
+            elif i["end date"] == "Non defini":
                 tournois_cours.append(i)
 
         main_view.display_tournaments(tournois_cours)
@@ -127,14 +181,14 @@ class TournamentController:
 
         round_datas[match_index - 1] = "over"
 
-        if current_tournament["date de debut"] == "Non defini":
-            old_tournament_datas = self.load_tournaments_datas()
+        if current_tournament["start date"] == "Non defini":
+            old_tournaments_datas = self.load_tournaments_datas()
 
-            for tournament in old_tournament_datas:
-                if tournament["club id"] == current_tournament["club id"]:
-                    tournament["date de debut"] = str(datetime.now().strftime("%m %d %y - %H %M"))
+            for tournament in old_tournaments_datas:
+                if tournament["tournament name"] == current_tournament["tournament name"]:
+                    tournament["start date"] = str(datetime.now().strftime("%m/%d/%y"))
 
-            self.tournament_model.write_tournaments_json(old_tournament_datas)
+            self.tournament_model.write_tournaments_json(old_tournaments_datas)
 
         self.tournament_model.write_round_datas(current_tournament, round_datas)
         main_view.display_saved()
@@ -144,18 +198,18 @@ class TournamentController:
     def finish_round(self, current_tournament):
 
         main_view.round_over(current_tournament)
-        current_tournament["tour en cours"] += 1
+        current_tournament["current turn"] += 1
 
-        old_tournament_datas = self.load_tournaments_datas()
+        old_tournaments_datas = self.load_tournaments_datas()
 
-        for tournament in old_tournament_datas:
-            if tournament["club id"] == current_tournament["club id"]:
-                tournament["tour en cours"] += 1
+        for tournament in old_tournaments_datas:
+            if tournament["tournament name"] == current_tournament["tournament name"]:
+                tournament["current round"] += 1
 
-        self.tournament_model.write_tournaments_json(old_tournament_datas)
+        self.tournament_model.write_tournaments_json(old_tournaments_datas)
 
-        """players_list = self.tournament_model.load_players_datas(current_tournament["club id"])
-        round_results = self.tournament_model.load_round_datas(current_tournament["club id"],
+        """players_list = self.tournament_model.load_players_datas(current_tournament["tournament name"])
+        round_results = self.tournament_model.load_round_datas(current_tournament["tournament name"],
                                                                current_tournament["tour en cours"] - 1)
 
         self.players.generate_pairs(players_list)"""

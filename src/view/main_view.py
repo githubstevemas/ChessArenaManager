@@ -4,14 +4,26 @@ import os
 def main():
     print("TOURNAMENT MENU\n")
     print("[1] Create new tournament")
-    print("[2] Run tournament")
-    print("[3] View rapports\n\n")
+    print("[2] Player menu")
+    print("[3] Run tournament")
+    print("[4] View reports\n\n")
 
 
-def create_tournament():
+def reports_menu():
     print("\n")
-    print("[1] Give the information manually")
+    print("[1] Display players reports")
+    print("[2] Display tournaments reports\n")
+    return int(input("Your choice? "))
+
+def ask_for_create():
+    print("\n")
+    print("[1] Give informations manually")
     print("[2] Generate random informations\n")
+    return int(input("Your choice? "))
+
+
+def add_player_menu():
+    pass
 
 
 def wrong_choice():
@@ -22,9 +34,15 @@ def return_option():
     print("[0] Return")
 
 
-def display_created():
+def display_created(tournament=False, round=False, player=False):
+
     print("\n")
-    print("Successfully created\n")
+    if tournament:
+        print(f"Tournament successfully created.\n")
+    elif round:
+        print(f"Round successfully created.\n")
+    elif player:
+        print(f"Player successfully created.\n")
     pause_display()
 
 
@@ -36,9 +54,9 @@ def display_saved():
 
 def pause_display():
     if os.name == 'posix':
-        input("Press any key to continue...")
+        input("Press [Enter] to continue...")
     else:
-        print("Press any key to continue...")
+        print("Press [Enter] to continue...")
         os.system("pause >nul")
 
 
@@ -46,21 +64,21 @@ def display_tournaments(tournois):
     print("\n")
     print("Tournaments :\n")
     for i in range(len(tournois)):
-        if tournois[i]["date de debut"] == "Non defini":
-            print(f"[{i + 1}] {tournois[i]["club id"]} not started.")
-        elif tournois[i]["date de fin"] == "Non defini":
-            print(f"[{i + 1}] {tournois[i]["club id"]} in progress.")
+        if tournois[i]["start date"] == "None":
+            print(f"[{i + 1}] {tournois[i]["tournament name"]} not started.")
+        elif tournois[i]["end date"] == "None":
+            print(f"[{i + 1}] {tournois[i]["tournament name"]} in progress.")
         else:
-            print(f"[{i + 1}] {tournois[i]["club id"]} over.")
+            print(f"[{i + 1}] {tournois[i]["tournament name"]} over.")
     print("\n")
 
 
-def display_matchs(tournament_datas, nb_matchs_restants, matchs_to_play):
+def display_matchs(tournaments_datas, nb_matchs_restants, matchs_to_play):
     """ affiche les infos du round choisi et les matchs restants """
 
     print("\n")
-    print(f"{tournament_datas["club id"]} club, from {tournament_datas["ville"]}")
-    print(f"Round number {tournament_datas["tour en cours"]} in progress, "
+    print(f"{tournaments_datas["tournament name"]} club, from {tournaments_datas["ville"]}")
+    print(f"Round number {tournaments_datas["current round"]} in progress, "
           f"{nb_matchs_restants} more match(s) to play.\n")
     print("Choose a match :")
 
@@ -75,4 +93,14 @@ def add_points_view(match):
 
 def round_over(current_tournament):
     print("\n")
-    print(f"Round {current_tournament["tour en cours"]} from {current_tournament["club id"]} over.")
+    print(f"Round {current_tournament["current round"]} from {current_tournament["tournament name"]} over.")
+
+
+def no_players():
+    print("\n")
+    print("No player registred.")
+
+
+def no_tournament():
+    print("\n")
+    print("No tournament created.")

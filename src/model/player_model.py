@@ -1,4 +1,8 @@
 import random
+import json
+import string
+import os
+
 from datetime import datetime
 
 from src.model.tournament_model import Tournament
@@ -10,45 +14,48 @@ class Player:
         self.players_list = []
         self.pair_players = []
 
-    def add_players(self, count, club_infos):
+    def write_player_datas(self, player_datas):
 
-        prenoms = ["James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William",
-                   "Elizabeth", "David", "Susan", "Joseph", "Jessica", "Charles", "Karen"]
-        noms_famille = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Garcia", "Rodriguez",
-                        "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas"]
+        path = "datas/tournaments/players.json"
+        datas = []
+
+        if os.path.exists(path):
+            datas = self.load_players_datas()
+
+        player_datas["inscription date"] = str(datetime.now().strftime("%m/%d/%y"))
+
+        datas.append(player_datas)
+
+        with open("datas/tournaments/players.json", "w") as file:
+            json.dump(datas, file)
+
+    def load_players_datas(self):
+        with open("datas/tournaments/players.json", "r") as file:
+            return json.load(file)
+
+    def add_players_randomly(self, count):
+
+        first_name_list = ["James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William",
+                           "Elizabeth", "David", "Susan", "Joseph", "Jessica", "Charles", "Karen"]
+
+        last_name_list = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Garcia", "Rodriguez",
+                          "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas"]
 
         for i in range(count):
-            player = {}
 
-            prenom = random.choice(prenoms)
-            prenoms.remove(prenom)
+            today = datetime.today()
+            year_birth = today.year - random.randint(16, 80)
+            month_birth = random.randint(1, 12)
+            day_birth = random.randint(1, 28)
 
-            nom = random.choice(noms_famille)
-            noms_famille.remove(nom)
+            player_datas = {"id": (random.choice(string.ascii_uppercase) +
+                                   random.choice(string.ascii_uppercase) +
+                                   str(random.randint(10000, 99999))),
+                            "first name": random.choice(first_name_list),
+                            "last name": random.choice(last_name_list),
+                            "birthdate": f"{month_birth}/{day_birth}/{year_birth}"}
 
-            aujourd_hui = datetime.today()
-            annee_naissance = aujourd_hui.year - random.randint(18, 80)
-            mois_naissance = random.randint(1, 12)
-            jour_naissance = random.randint(1, 28)
-
-            date_naissance = f"{annee_naissance}/{mois_naissance}/{jour_naissance}"
-
-            pts_round1 = 0
-            pts_round2 = 0
-            pts_round3 = 0
-            pts_round4 = 0
-
-            player.update({"first_name": prenom,
-                           "last_name": nom,
-                           "birthday": date_naissance,
-                           "points round 1": pts_round1,
-                           "points round 2": pts_round2,
-                           "points round 3": pts_round3,
-                           "points round 4": pts_round4})
-
-            self.players_list.append(player)
-
-        self.tournament_model.write_players_datas(club_infos[-1]["club id"], self.players_list)
+            self.write_player_datas(player_datas)
 
     def generate_pairs(self, players_list):
 
