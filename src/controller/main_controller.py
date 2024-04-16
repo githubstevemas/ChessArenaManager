@@ -307,4 +307,3 @@ class Controller:
         final_list = sorted(players_list, key=lambda x: x[1], reverse=True)
         player_view.display_winners(final_list)
         main_view.pause_display()
-

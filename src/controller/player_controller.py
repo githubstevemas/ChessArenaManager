@@ -64,8 +64,8 @@ class PlayerController:
             day_birth = random.randint(1, 28)
 
             self.player_model.id = (random.choice(string.ascii_uppercase) +
-                                random.choice(string.ascii_uppercase) +
-                                str(random.randint(10000, 99999)))
+                                    random.choice(string.ascii_uppercase) +
+                                    str(random.randint(10000, 99999)))
             self.player_model.first_name = random.choice(first_name_list)
             self.player_model.last_name = random.choice(last_name_list)
 

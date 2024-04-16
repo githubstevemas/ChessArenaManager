@@ -18,7 +18,6 @@ class TournamentController:
         tournament_name = f"{town} - {name} {datetime.today().year}"
         return tournament_name, town
 
-
     def create_tournament_directory(self, tournament_name):
         dir_path = f"datas/tournaments/{tournament_name}"
         os.mkdir(dir_path)
@@ -32,7 +31,7 @@ class TournamentController:
 
         self.create_tournament(tournament_infos)
 
-    def create_tournament(self,tournament_infos):
+    def create_tournament(self, tournament_infos):
         # informations tournois
 
         tournaments_datas = {"tournament name": tournament_infos[0],
@@ -60,6 +59,6 @@ class TournamentController:
         with open("datas/tournaments/tournaments_datas.json", "r") as file:
             return json.load(file)
 
-    def write_tournaments_json(self,datas):
-        with open(f"datas/tournaments/tournaments_datas.json", "w") as file:
+    def write_tournaments_json(self, datas):
+        with open("datas/tournaments/tournaments_datas.json", "w") as file:
             json.dump(datas, file)

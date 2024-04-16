@@ -47,11 +47,11 @@ def display_created(tournament=False, round=False, player=False):
 
     print("\n")
     if tournament:
-        print(f"Tournament successfully created.\n")
+        print("Tournament successfully created.\n")
     elif round:
-        print(f"Round successfully created.\n")
+        print("Round successfully created.\n")
     elif player:
-        print(f"Player successfully created.\n")
+        print("Player successfully created.\n")
     pause_display()
 
 
