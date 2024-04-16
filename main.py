@@ -1,7 +1,7 @@
-from src.controller.tournament_controller import TournamentController
+from src.controller.main_controller import Controller
 
 
 if __name__ == "__main__":
 
-    main = TournamentController()
-    main.main()
+    main = Controller()
+    main.main_menu()
