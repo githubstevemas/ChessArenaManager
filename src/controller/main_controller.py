@@ -222,7 +222,7 @@ class Controller:
         players_list = self.player_controller.load_players_datas()
         list_to_display = []
 
-        for player_id in tournaments_datas[tournament - 1]["players list"]:
+        for player_id in tournaments_datas[int(tournament) - 1]["players list"]:
             for player_datas in players_list:
                 if player_id == player_datas["id"]:
                     list_to_display.append(player_datas)
