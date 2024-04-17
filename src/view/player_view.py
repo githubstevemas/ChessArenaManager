@@ -26,7 +26,8 @@ def player_menu():
     print("[1] Create player")
     print("[2] Add player to tournament")
     print("\n[0] Return\n")
-    print("Your choice ? ")
+    choice = input("Your choice ? ")
+    return choice
 
 
 def choose_tournament(tournaments):
@@ -47,7 +48,8 @@ def ask_more():
     print("Add more players to this tournaments ?.")
     print("[1] Yes")
     print("[2] No")
-    print("Your choice : ")
+    choice = input("Your choice : ")
+    return choice
 
 
 def choose_player(players):
@@ -74,7 +76,7 @@ def insufficient_players():
 
 def display_created():
     print("\n")
-    print("Player successfully created.")
+    print("Player successfully created.\n")
 
 
 def pause_display():
@@ -85,7 +87,7 @@ def pause_display():
         os.system("pause >nul")
 
 
-def display_winners(list):
+def display_winners(players_list):
     print("\n")
-    print(f"First place : {list[0][0]} with {list[0][1]} points.")
-    print(f"Second place : {list[1][0]} with {list[1][1]} points.")
+    print(f"{players_list[0][0]}, first place with {players_list[0][1]} points.")
+    print(f"{players_list[1][0]}, second place with {players_list[1][1]} points.")
