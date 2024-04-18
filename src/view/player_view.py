@@ -35,7 +35,8 @@ def choose_tournament(tournaments):
     for i in range(len(tournaments)):
 
         print(f"[{i + 1}] {tournaments[i]["tournament name"]}")
-    print("\nChoose a tournament :")
+    choice = input("\nChoose a tournament : ")
+    return choice
 
 
 def choose_different_tournament():
@@ -56,7 +57,8 @@ def choose_player(players):
     print("\n")
     for i in range(len(players)):
         print(f"[{i + 1}] {players[i]["first name"]} {players[i]["last name"]} (id {players[i]["id"]})")
-    print("\nChoose a player : ")
+    choice = input("\nChoose a player : ")
+    return choice
 
 
 def non_pair_list():

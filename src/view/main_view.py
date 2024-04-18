@@ -107,6 +107,7 @@ def display_matchs(tournaments_datas, matchs_to_play):
 def add_points_view(match):
     print("\n")
     print(f"[1] {match[0]} or [2] {match[1]}\n")
+    print("[0] Draw")
 
 
 def round_over(current_tournament):
@@ -148,3 +149,9 @@ def new_tournament_name():
 def display_tournament_over():
     print("\n")
     print("Tournament over. Congratulations to :")
+
+
+def display_add_description():
+    print("\n")
+    comment = input("Type your comment here :")
+    return comment

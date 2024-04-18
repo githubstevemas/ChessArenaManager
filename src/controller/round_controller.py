@@ -21,8 +21,9 @@ class RoundController:
         with open(path_clubs, "w") as file:
             json.dump(round_datas, file)
 
-    def generate_first_round(self, tournament_datas):
+    def generate_firsts_pairs(self, tournament_datas):
 
+        pair_list = []
         nb_pairs = len(tournament_datas["players list"]) / 2
         for i in range(int(nb_pairs)):
             pair_players = []
@@ -30,10 +31,14 @@ class RoundController:
                 player = random.choice(tournament_datas["players list"])
                 tournament_datas["players list"].remove(player)
                 pair_players.extend([player])
+
             self.round_model.round_datas.extend([self.round_model.status,
                                                  pair_players,
                                                  self.round_model.points_player1,
                                                  self.round_model.points_player2])
+            pair_list.append(pair_players)
+
+        self.write_pairs_json(pair_list, tournament_datas)
 
         return self.round_model.round_datas
 
@@ -63,6 +68,20 @@ class RoundController:
 
         return round_datas
 
+    def write_pairs_json(self, pair_list, tournament):
+
+        path_clubs = f"datas/tournaments/{tournament["tournament name"]}/pairs.json"
+        with open(path_clubs, "w") as file:
+            json.dump(pair_list, file)
+
+    def load_pairs_json(self, tournament):
+
+        with open(f"datas/tournaments/"
+                  f"{tournament["tournament name"]}/"
+                  f"pairs.json", "r") as file:
+
+            return json.load(file)
+
     def load_round_datas(self, tournament_datas):
 
         with open(f"datas/tournaments/"
@@ -73,9 +92,9 @@ class RoundController:
 
     def create_first_round(self, current_tournament):
 
-        pairs = self.generate_first_round(current_tournament)
+        pairs = self.generate_firsts_pairs(current_tournament)
         self.write_round_datas(current_tournament, pairs)
-        self.tournament_controller.add_start_date(current_tournament)
+        self.tournament_controller.add_date(current_tournament, start_date=True)
 
     def check_pair_players(self, players_list):
 
@@ -97,6 +116,14 @@ class RoundController:
             insufficient = False
 
             return insufficient
+
+    def check_already_together(self, pair, tournament):
+
+        pairs = self.load_pairs_json(tournament)
+        for i in range(len(pairs)):
+            pass
+
+            """ a finir """
 
     def choose_match_to_play(self, current_tournament):
 
@@ -131,6 +158,9 @@ class RoundController:
             round_datas[match_index + 1] += 1
         elif int(winner) == 2:
             round_datas[match_index + 2] += 1
+        elif int(winner) == 0:
+            round_datas[match_index + 1] += 0.5
+            round_datas[match_index + 2] += 0.5
         round_datas[match_index - 1] = "over"
         self.write_round_datas(current_tournament, round_datas)
         main_view.display_saved()
@@ -162,6 +192,7 @@ class RoundController:
 
         main_view.display_tournament_over()
         current_round = self.load_round_datas(current_tournament)
+        self.tournament_controller.add_date(current_tournament, start_date=False)
         players_list = []
         i = 1
         while i < len(current_round):

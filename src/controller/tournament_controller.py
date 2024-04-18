@@ -70,10 +70,17 @@ class TournamentController:
         with open("datas/tournaments/tournaments_datas.json", "w") as file:
             json.dump(datas, file)
 
-    def add_start_date(self, current_tournament):
+    def add_date(self, current_tournament, start_date):
 
         old_tournaments_datas = self.load_tournaments_datas()
-        for tournament in old_tournaments_datas:
-            if tournament["tournament name"] == current_tournament["tournament name"]:
-                tournament["start date"] = str(datetime.now().strftime("%m/%d/%y"))
+
+        if start_date:
+            for tournament in old_tournaments_datas:
+                if tournament["tournament name"] == current_tournament["tournament name"]:
+                    tournament["start date"] = str(datetime.now().strftime("%m/%d/%y %H:%M"))
+        else:
+            for tournament in old_tournaments_datas:
+                if tournament["tournament name"] == current_tournament["tournament name"]:
+                    tournament["end date"] = str(datetime.now().strftime("%m/%d/%y %H:%M"))
+
         self.write_tournaments_json(old_tournaments_datas)
