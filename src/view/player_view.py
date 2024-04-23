@@ -46,7 +46,7 @@ def choose_different_tournament():
 
 def ask_more():
     print("\n")
-    print("Add more players to this tournaments ?.")
+    print("Add more players to this tournaments ?")
     print("[1] Yes")
     print("[2] No")
     choice = input("Your choice : ")
@@ -55,9 +55,10 @@ def ask_more():
 
 def choose_player(players):
     print("\n")
+    print("Unregistred players to this tournament : ")
     for i in range(len(players)):
         print(f"[{i + 1}] {players[i]["first name"]} {players[i]["last name"]} (id {players[i]["id"]})")
-    choice = input("\nChoose a player : ")
+    choice = input("\nChoose one or more players, spaced by a ',' : ")
     return choice
 
 

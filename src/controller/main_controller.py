@@ -35,33 +35,22 @@ class Controller:
             elif main_choice == "5":
                 self.add_comment_menu()
             elif main_choice == "0":
-                for element in os.listdir("datas/tournaments"):
-                    path = os.path.join("datas/tournaments", element)
-                    if os.path.isfile(path):
-                        os.remove(path)
-                    elif os.path.isdir(path):
-                        shutil.rmtree(path)
+                self.debug_menu()
+            elif main_choice == "9":
+                tournament = self.tournament_controller.load_tournaments_datas()
+                self.round_controller.generate_new_pairs(tournament[0]["tournament list"])
 
     def create_tournament_menu(self):
 
-        user_choice = main_view.ask_for_create()
+        town = main_view.new_tournament_town()
+        name = main_view.new_tournament_name()
 
-        if user_choice == "1":
-            town = main_view.new_tournament_town()
-            name = main_view.new_tournament_name()
+        tournament_name = f"{town} - {name} {datetime.today().year}"
 
-            tournament_name = f"{town} - {name} {datetime.today().year}"
-
-            tournament_datas = [tournament_name, town]
-            self.tournament_controller.create_tournament(tournament_datas)
-            main_view.display_tournament_created()
-
-        elif user_choice == "2":
-            self.tournament_controller.generate_tournament_datas()
-            main_view.display_tournament_created()
-
-        elif user_choice == "0":
-            self.main_menu()
+        tournament_datas = [tournament_name, town]
+        tournament_id = self.tournament_controller.generate_tournament_id()
+        self.tournament_controller.create_tournament(tournament_datas, tournament_id)
+        main_view.display_tournament_created()
 
     def player_menu(self):
 
@@ -69,19 +58,11 @@ class Controller:
             player_menu_choice = player_view.player_menu()
 
             if player_menu_choice == "1":
-                self.create_player_menu()
+                self.player_controller.create_player_manualy()
             elif player_menu_choice == "2":
                 self.add_player_menu()
             elif player_menu_choice == "0":
                 self.main_menu()
-
-    def create_player_menu(self):
-
-        create_choice = main_view.ask_for_create()
-        if create_choice == "1":
-            self.player_controller.create_player_manualy()
-        elif create_choice == "2":
-            self.player_controller.create_players_randomly(16)
 
     def add_player_menu(self):
 
@@ -104,24 +85,19 @@ class Controller:
         tournament_choice = int(player_view.choose_tournament(non_started_tournaments))
         tournament = non_started_tournaments[tournament_choice - 1]
 
-        # display players non-added to choosen tournament
-        players = self.player_controller.load_players_datas()
-        players_non_added = self.player_controller.non_added_players(players, tournament)
-        player_choice = int(player_view.choose_player(players_non_added))
-        player_to_add = players_non_added[player_choice - 1]["id"]
-
-        # add the player to choosen tournament
-        new_tournament_datas = self.player_controller.add_player_to_tournament(player_to_add, tournament)
+        new_tournament_datas = self.player_controller.add_player_to_tournament(tournament)
 
         tournaments[tournament_choice - 1] = new_tournament_datas
         self.tournament_controller.write_tournaments_json(tournaments)
         main_view.display_saved()
+        # display players non-added to choosen tournament
 
     def tournament_menu(self):
 
         tournaments_datas = self.tournament_controller.load_tournaments_datas()
         tournois_cours = []
 
+        # choose tournament
         for i in tournaments_datas:
             if i["end date"] == "Not finished":
                 tournois_cours.append(i)
@@ -147,7 +123,20 @@ class Controller:
             main_view.pause_display()
             self.main_menu()
 
+        if current_tournament["tournament list"] == "None":
+            current_tournament = self.round_controller.create_first_round(current_tournament)
+
         self.round_controller.choose_match_to_play(current_tournament)
+
+        while True:
+            print("\nplay an other match ?\n")
+            print("[1] Yes")
+            print("[2] No\n")
+            choice = input("Your choice : ")
+            if choice == "1":
+                self.round_controller.choose_match_to_play(current_tournament)
+            elif choice == "2":
+                break
 
     def reports_menu(self):
 
@@ -163,6 +152,8 @@ class Controller:
                 self.report_players_tournament()
             elif reports_choice == "5":
                 self.report_round_infos()
+            elif reports_choice == "6":
+                self.report_players_ranking()
             elif reports_choice == "0":
                 self.main_menu()
 
@@ -181,6 +172,7 @@ class Controller:
                             "id": f"{player["id"]}"}
             player_list.append(player_datas)
         report_view.print_table(player_list)
+        main_view.pause_display()
 
     def report_tournament_list(self):
 
@@ -191,7 +183,8 @@ class Controller:
         datas = self.tournament_controller.load_tournaments_datas()
         tournament_list = []
         for tournament in datas:
-            tournament_datas = {"tournament name": f"{tournament["tournament name"]}"}
+            tournament_datas = {"tournament name": f"{tournament["tournament name"]}",
+                                "tournament id": f"{tournament["tournament id"]}"}
             tournament_list.append(tournament_datas)
 
         report_view.print_table(tournament_list)
@@ -208,6 +201,7 @@ class Controller:
         tournament = tournaments[int(tournament_choice) - 1]
         tournament_datas = [{"tournament name": f"{tournament["tournament name"]}",
                              "start date": f"{tournament["start date"]}",
+                             "end date": f"{tournament["end date"]}",
                              "current round": f"{tournament["current round"]}",
                              "description": f"{tournament["description"]}"}]
 
@@ -255,12 +249,35 @@ class Controller:
         if not started_tournaments:
             main_view.no_started_tournament()
             self.reports_menu()
+
         tournament_choice = main_view.display_tournaments(started_tournaments)
         tournament = started_tournaments[int(tournament_choice) - 1]
 
-        # tournament_rounds = self.round_controller.load_round_datas(tournament)
+        report_view.print_rounds(tournament)
+        main_view.pause_display()
 
-        """ a finir """
+    def report_players_ranking(self):
+
+        if not os.path.exists("datas/tournaments/tournaments_datas.json"):
+            main_view.no_tournament()
+            self.reports_menu()
+
+        tournaments = self.tournament_controller.load_tournaments_datas()
+        started_tournaments = []
+        for tournament in tournaments:
+            if tournament["start date"] != "Not started":
+                started_tournaments.append(tournament)
+        if not started_tournaments:
+            main_view.no_started_tournament()
+            self.reports_menu()
+
+        tournament_choice = main_view.display_tournaments(started_tournaments)
+        tournament = started_tournaments[int(tournament_choice) - 1]
+
+        players_names = self.player_controller.sort_players(tournament)
+
+        report_view.print_players(players_names)
+        main_view.pause_display()
 
     def add_comment_menu(self):
 
@@ -280,3 +297,24 @@ class Controller:
                 tournaments[i]["description"] = description
 
         self.tournament_controller.write_tournaments_json(tournaments)
+
+    def debug_menu(self):
+
+        while True:
+            debug_choice = main_view.debug_menu()
+
+            if debug_choice == "1":
+                self.tournament_controller.generate_tournament_datas()
+                main_view.display_tournament_created()
+            if debug_choice == "2":
+                self.player_controller.create_players_randomly(16)
+                player_view.display_created()
+            if debug_choice == "3":
+                for element in os.listdir("datas/tournaments"):
+                    path = os.path.join("datas/tournaments", element)
+                    if os.path.isfile(path):
+                        os.remove(path)
+                    elif os.path.isdir(path):
+                        shutil.rmtree(path)
+            if debug_choice == "0":
+                self.main_menu()

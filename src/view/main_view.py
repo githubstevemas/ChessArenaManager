@@ -24,15 +24,7 @@ def reports_menu():
     print("[3] Display tournament informations")
     print("[4] Display registred players for a tournament")
     print("[5] Display rounds informations")
-    print("\n[0] Return\n")
-    choice = input("Your choice ? ")
-    return choice
-
-
-def ask_for_create():
-    print("\n")
-    print("[1] Give informations manually")
-    print("[2] Generate random informations")
+    print("[6] Display players rankings")
     print("\n[0] Return\n")
     choice = input("Your choice ? ")
     return choice
@@ -98,15 +90,21 @@ def display_matchs(tournaments_datas, matchs_to_play):
     print(f"Round number {tournaments_datas["current round"]}, choose a match :\n")
 
     for j in range(len(matchs_to_play)):
-        print(f"[{j + 1}] {matchs_to_play[j][0]} vs {matchs_to_play[j][1]}")
+        print(f"[{j + 1}] {matchs_to_play[j]["pairs"][0]} vs {matchs_to_play[j]["pairs"][1]}")
     print("\n[0] Return\n")
     choice = input("Your choice : ")
     return choice
 
 
+def display_round(rounds_nb):
+    print("\n")
+    choice = input(f"{rounds_nb} round(s) for this tournament, choose one to display : ")
+    return choice
+
+
 def add_points_view(match):
     print("\n")
-    print(f"[1] {match[0]} or [2] {match[1]}\n")
+    print(f"[1] {match["pairs"][0]} or [2] {match["pairs"][1]}")
     print("[0] Draw")
 
 
@@ -130,7 +128,7 @@ def no_tournament():
 
 def no_started_tournament():
     print("\n")
-    print("No tournament started yed.")
+    print("No tournament started yet.")
     pause_display()
 
 
@@ -155,3 +153,14 @@ def display_add_description():
     print("\n")
     comment = input("Type your comment here :")
     return comment
+
+
+def debug_menu():
+    print("\n")
+    print("Debug menu\n")
+    print("[1] Create random tournament")
+    print("[2] Create 16 random players")
+    print("[3] Erease all datas")
+    print("[0] Return\n")
+    choice = input("Your choice : ")
+    return choice

@@ -69,7 +69,8 @@ class PlayerController:
         player_view.display_created()
         main_view.pause_display()
 
-    def non_added_players(self, players, tournament):
+    @staticmethod
+    def non_added_players(players, tournament):
 
         players_non_added = []
         for player in players:
@@ -77,9 +78,46 @@ class PlayerController:
                 players_non_added.append(player)
         return players_non_added
 
-    def add_player_to_tournament(self, player_id, tournament):
+    def add_player_to_tournament(self, tournament):
 
-        if tournament["players list"] == "None":
-            tournament["players list"] = []
-        tournament["players list"].append(player_id)
+        players = self.load_players_datas()
+        players_non_added = self.non_added_players(players, tournament)
+        player_choice = player_view.choose_player(players_non_added)
+
+        elements = player_choice.split(',')
+        players_list = []
+        for element in elements:
+            players_list.append(element.strip())
+
+        for player in players_list:
+            player_to_add = players_non_added[int(player) - 1]["id"]
+
+            if tournament["players list"] == "None":
+                tournament["players list"] = []
+            tournament["players list"].append(player_to_add)
+
         return tournament
+
+    def sort_players(self, tournament):
+
+        players = tournament["tournament list"][-1]
+
+        ids_list = []
+        for match in players:
+            players = match['pairs']
+            scores = [match['points player 1'], match['points player 2']]
+            ids_list.append((players[0], scores[0]))
+            ids_list.append((players[1], scores[1]))
+
+        players = self.load_players_datas()
+
+        players_names = []
+
+        for player in players:
+            for id_player in ids_list:
+                if player["id"] == id_player[0]:
+                    player_infos = [player["first name"], player["last name"], player["id"], id_player[1]]
+                    players_names.append(player_infos)
+        players_names.sort(key=lambda x: x[3], reverse=True)
+
+        return players_names
