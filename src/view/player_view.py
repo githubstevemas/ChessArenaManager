@@ -26,17 +26,15 @@ def player_menu():
     print("[1] Create player")
     print("[2] Add player to tournament")
     print("\n[0] Return\n")
-    choice = input("Your choice ? ")
-    return choice
+    return input("Your choice ? ")
 
 
 def choose_tournament(tournaments):
     print("\n")
     for i in range(len(tournaments)):
 
-        print(f"[{i + 1}] {tournaments[i]["tournament name"]}")
-    choice = input("\nChoose a tournament : ")
-    return choice
+        print(f"[{i + 1}] {tournaments[i].name}")
+    return input("\nChoose a tournament : ")
 
 
 def choose_different_tournament():
@@ -49,17 +47,15 @@ def ask_more():
     print("Add more players to this tournaments ?")
     print("[1] Yes")
     print("[2] No")
-    choice = input("Your choice : ")
-    return choice
+    return input("Your choice : ")
 
 
 def choose_player(players):
     print("\n")
     print("Unregistred players to this tournament : ")
     for i in range(len(players)):
-        print(f"[{i + 1}] {players[i]["first name"]} {players[i]["last name"]} (id {players[i]["id"]})")
-    choice = input("\nChoose one or more players, spaced by a ',' : ")
-    return choice
+        print(f"[{i + 1}] {players[i].first_name} {players[i].last_name} (id {players[i].id})")
+    return input("\nChoose one or more players spaced by a ',' : ")
 
 
 def non_pair_list():

@@ -2,19 +2,18 @@ import os
 
 
 def main():
+    # [0] To enter debug menu
     print("TOURNAMENT MENU\n")
     print("[1] Create new tournament")
     print("[2] Player menu")
     print("[3] Run tournament")
     print("[4] View reports")
     print("[5] Add comment to tournament\n")
-    choice = input("Your choice ? ")
-    return choice
+    return input("Your choice ? ")
 
 
 def ask_user_choice():
-    choice = input("Your choice ? ")
-    return choice
+    return input("Your choice ? ")
 
 
 def reports_menu():
@@ -26,8 +25,7 @@ def reports_menu():
     print("[5] Display rounds informations")
     print("[6] Display players rankings")
     print("\n[0] Return\n")
-    choice = input("Your choice ? ")
-    return choice
+    return input("Your choice ? ")
 
 
 def add_player_menu():
@@ -67,14 +65,20 @@ def display_tournaments(tournois):
     print("\n")
     print("Tournaments :\n")
     for i in range(len(tournois)):
-        if tournois[i]["start date"] == "Not started":
-            print(f"[{i + 1}] {tournois[i]["tournament name"]}, not started.")
-        elif tournois[i]["end date"] == "Not finished":
-            print(f"[{i + 1}] {tournois[i]["tournament name"]}, in progress.")
+        if tournois[i].start_date == "Not started":
+            print(f"[{i + 1}] {tournois[i].name}, not started.")
+        elif tournois[i].end_date == "Not finished":
+            print(f"[{i + 1}] {tournois[i].name}, in progress.")
         else:
-            print(f"[{i + 1}] {tournois[i]["tournament name"]}, over.")
-    choice = input("\nChoose a tournament : ")
-    return choice
+            print(f"[{i + 1}] {tournois[i].name}, over.")
+    return input("\nChoose a tournament : ")
+
+
+def run_another_match():
+    print("\nplay an other match ?\n")
+    print("[1] Yes")
+    print("[2] No\n")
+    return input("Your choice : ")
 
 
 def all_tournaments_started():
@@ -84,33 +88,28 @@ def all_tournaments_started():
 
 
 def display_matchs(tournaments_datas, matchs_to_play):
-    """ affiche les infos du round choisi et les matchs restants """
-
     print("\n")
-    print(f"Round number {tournaments_datas["current round"]}, choose a match :\n")
-
+    print(f"Round number {tournaments_datas.current_round}\n")
     for j in range(len(matchs_to_play)):
-        print(f"[{j + 1}] {matchs_to_play[j]["pairs"][0]} vs {matchs_to_play[j]["pairs"][1]}")
+        print(f"[{j + 1}] {matchs_to_play[j].pair_players[0]} vs {matchs_to_play[j].pair_players[1]}")
     print("\n[0] Return\n")
-    choice = input("Your choice : ")
-    return choice
+    return input("Choose a match : ")
 
 
 def display_round(rounds_nb):
     print("\n")
-    choice = input(f"{rounds_nb} round(s) for this tournament, choose one to display : ")
-    return choice
+    return input(f"{rounds_nb} round(s) for this tournament, choose one to display : ")
 
 
 def add_points_view(match):
     print("\n")
-    print(f"[1] {match["pairs"][0]} or [2] {match["pairs"][1]}")
-    print("[0] Draw")
+    print(f"[1] {match.pair_players[0]} or [2] {match.pair_players[1]}")
+    print("[0] Draw\n")
 
 
 def round_over(current_tournament):
     print("\n")
-    print(f"Round {current_tournament["current round"]} from {current_tournament["tournament name"]} over.")
+    print(f"Round {current_tournament.current_round} from {current_tournament.name} over.")
     pause_display()
 
 
@@ -151,8 +150,7 @@ def display_tournament_over():
 
 def display_add_description():
     print("\n")
-    comment = input("Type your comment here :")
-    return comment
+    return input("Write your comment here, and press enter :")
 
 
 def debug_menu():
@@ -162,5 +160,4 @@ def debug_menu():
     print("[2] Create 16 random players")
     print("[3] Erease all datas")
     print("[0] Return\n")
-    choice = input("Your choice : ")
-    return choice
+    return input("Your choice : ")

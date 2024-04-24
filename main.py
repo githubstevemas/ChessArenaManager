@@ -1,4 +1,4 @@
-from src.controller.main_controller import Controller
+from src.controller.main_ctrl import Controller
 
 
 if __name__ == "__main__":

@@ -6,9 +6,12 @@ from src.view import main_view
 from src.view import report_view
 from src.view import player_view
 
-from src.controller.tournament_controller import TournamentController
-from src.controller.round_controller import RoundController
-from src.controller.player_controller import PlayerController
+from src.controller import json_manager
+from src.controller.tournament_ctrl import TournamentController
+from src.controller.round_ctrl import RoundController
+from src.controller.player_ctrl import PlayerController
+
+from src.model import serializer
 
 
 class Controller:
@@ -37,8 +40,8 @@ class Controller:
             elif main_choice == "0":
                 self.debug_menu()
             elif main_choice == "9":
-                tournament = self.tournament_controller.load_tournaments_datas()
-                self.round_controller.generate_new_pairs(tournament[0]["tournament list"])
+                tournament = {"players list": ["marie", "luc", "daniel", "renaud", "jean", "marc"]}
+                self.round_controller.generate_firsts_pairs(tournament)
 
     def create_tournament_menu(self):
 
@@ -49,6 +52,7 @@ class Controller:
 
         tournament_datas = [tournament_name, town]
         tournament_id = self.tournament_controller.generate_tournament_id()
+
         self.tournament_controller.create_tournament(tournament_datas, tournament_id)
         main_view.display_tournament_created()
 
@@ -66,7 +70,7 @@ class Controller:
 
     def add_player_menu(self):
 
-        # add player to tournament
+        # check if tournaments and players registred
         if not os.path.exists("datas/tournaments/tournaments_datas.json"):
             player_view.no_tournament()
             self.main_menu()
@@ -88,20 +92,20 @@ class Controller:
         new_tournament_datas = self.player_controller.add_player_to_tournament(tournament)
 
         tournaments[tournament_choice - 1] = new_tournament_datas
-        self.tournament_controller.write_tournaments_json(tournaments)
+        json_manager.dump_tournaments_json(tournaments)
         main_view.display_saved()
         # display players non-added to choosen tournament
 
     def tournament_menu(self):
 
         tournaments_datas = self.tournament_controller.load_tournaments_datas()
-        tournois_cours = []
+        not_finished_tournaments = []
 
         # choose tournament
         for i in tournaments_datas:
-            if i["end date"] == "Not finished":
-                tournois_cours.append(i)
-        tournament_choice = int(main_view.display_tournaments(tournois_cours))
+            if i.end_date == "Not finished":
+                not_finished_tournaments.append(i)
+        tournament_choice = int(main_view.display_tournaments(not_finished_tournaments))
 
         if tournament_choice == 0:
             self.main_menu()
@@ -109,33 +113,31 @@ class Controller:
         while int(tournament_choice) > len(tournaments_datas):
             tournament_choice = main_view.wrong_choice()
 
-        current_tournament = tournois_cours[tournament_choice - 1]
+        choosen_tournament = not_finished_tournaments[tournament_choice - 1]
 
         # check players nb and if pairs
-        insufficient_players = self.round_controller.check_nb_players(current_tournament["players list"])
+        insufficient_players = self.round_controller.check_nb_players(choosen_tournament.players_list)
         if insufficient_players:
             player_view.insufficient_players()
             main_view.pause_display()
             self.main_menu()
-        pair_list = self.round_controller.check_pair_players(current_tournament["players list"])
+
+        pair_list = self.round_controller.check_pair_players(choosen_tournament.players_list)
         if not pair_list:
             player_view.non_pair_list()
             main_view.pause_display()
             self.main_menu()
 
-        if current_tournament["tournament list"] == "None":
-            current_tournament = self.round_controller.create_first_round(current_tournament)
+        if choosen_tournament.rounds_list == "None":
+            choosen_tournament = self.round_controller.create_first_round(choosen_tournament)
 
-        self.round_controller.choose_match_to_play(current_tournament)
+        self.round_controller.choose_match_to_play(choosen_tournament)
 
         while True:
-            print("\nplay an other match ?\n")
-            print("[1] Yes")
-            print("[2] No\n")
-            choice = input("Your choice : ")
-            if choice == "1":
-                self.round_controller.choose_match_to_play(current_tournament)
-            elif choice == "2":
+            run_another_choice = main_view.run_another_match()
+            if run_another_choice == "1":
+                self.round_controller.choose_match_to_play(choosen_tournament)
+            elif run_another_choice == "2":
                 break
 
     def reports_menu(self):
@@ -164,13 +166,14 @@ class Controller:
             self.reports_menu()
 
         datas = self.player_controller.load_players_datas()
-        sorted_players = sorted(datas, key=lambda x: x["last name"])
+        sorted_players = sorted(datas, key=lambda x: x.last_name)
         player_list = []
         for player in sorted_players:
-            player_datas = {"last name": f"{player["last name"]}",
-                            "first name": f"{player["first name"]}",
-                            "id": f"{player["id"]}"}
+            player_datas = {"last name": player.last_name,
+                            "first name": player.first_name,
+                            "id": player.id}
             player_list.append(player_datas)
+
         report_view.print_table(player_list)
         main_view.pause_display()
 
@@ -183,8 +186,8 @@ class Controller:
         datas = self.tournament_controller.load_tournaments_datas()
         tournament_list = []
         for tournament in datas:
-            tournament_datas = {"tournament name": f"{tournament["tournament name"]}",
-                                "tournament id": f"{tournament["tournament id"]}"}
+            tournament_datas = {"tournament name": tournament.name,
+                                "tournament id": tournament.tournament_id}
             tournament_list.append(tournament_datas)
 
         report_view.print_table(tournament_list)
@@ -199,11 +202,11 @@ class Controller:
         tournaments = self.tournament_controller.load_tournaments_datas()
         tournament_choice = main_view.display_tournaments(tournaments)
         tournament = tournaments[int(tournament_choice) - 1]
-        tournament_datas = [{"tournament name": f"{tournament["tournament name"]}",
-                             "start date": f"{tournament["start date"]}",
-                             "end date": f"{tournament["end date"]}",
-                             "current round": f"{tournament["current round"]}",
-                             "description": f"{tournament["description"]}"}]
+        tournament_datas = [{"tournament name": tournament.name,
+                             "start date": tournament.start_date,
+                             "end date": tournament.end_date,
+                             "current round": tournament.current_round,
+                             "description": tournament.description}]
 
         report_view.print_table(tournament_datas)
         main_view.pause_display()
@@ -219,17 +222,17 @@ class Controller:
         players_list = self.player_controller.load_players_datas()
         list_to_display = []
 
-        for player_id in tournaments_datas[int(tournament) - 1]["players list"]:
+        for player_id in tournaments_datas[int(tournament) - 1].players_list:
             for player_datas in players_list:
-                if player_id == player_datas["id"]:
+                if player_id == player_datas.id:
                     list_to_display.append(player_datas)
 
-        sorted_players = sorted(list_to_display, key=lambda x: x["last name"])
+        sorted_players = sorted(list_to_display, key=lambda x: x.last_name)
         sorted_list = []
         for player in sorted_players:
-            player_datas = {"last name": f"{player["last name"]}",
-                            "first name": f"{player["first name"]}",
-                            "id": f"{player["id"]}"}
+            player_datas = {"last name": player.first_name,
+                            "first name": player.first_name,
+                            "id": player.id}
             sorted_list.append(player_datas)
 
         report_view.print_table(sorted_list)
@@ -244,7 +247,7 @@ class Controller:
         tournaments = self.tournament_controller.load_tournaments_datas()
         started_tournaments = []
         for tournament in tournaments:
-            if tournament["start date"] != "Not started":
+            if tournament.start_date != "Not started":
                 started_tournaments.append(tournament)
         if not started_tournaments:
             main_view.no_started_tournament()
@@ -253,7 +256,17 @@ class Controller:
         tournament_choice = main_view.display_tournaments(started_tournaments)
         tournament = started_tournaments[int(tournament_choice) - 1]
 
-        report_view.print_rounds(tournament)
+        i = 1
+        for round_datas in tournament.rounds_list:
+            matchs_list = []
+            for match in round_datas:
+                match_datas = serializer.serialize_match(match)
+                matchs_list.append(match_datas)
+
+            print(f"\nRound #{i} :")
+            report_view.print_table(matchs_list)
+            i += 1
+
         main_view.pause_display()
 
     def report_players_ranking(self):
@@ -265,7 +278,7 @@ class Controller:
         tournaments = self.tournament_controller.load_tournaments_datas()
         started_tournaments = []
         for tournament in tournaments:
-            if tournament["start date"] != "Not started":
+            if tournament.start_date != "Not started":
                 started_tournaments.append(tournament)
         if not started_tournaments:
             main_view.no_started_tournament()
@@ -293,10 +306,10 @@ class Controller:
         """ formater le texte pour json """
 
         for i in range(len(tournaments)):
-            if tournaments[i]["tournament name"] == tournament["tournament name"]:
-                tournaments[i]["description"] = description
+            if tournaments[i].name == tournament.name:
+                tournaments[i].description = description
 
-        self.tournament_controller.write_tournaments_json(tournaments)
+        json_manager.dump_tournaments_json(tournaments)
 
     def debug_menu(self):
 
