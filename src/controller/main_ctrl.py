@@ -1,4 +1,5 @@
 import os.path
+import re
 import shutil
 from datetime import datetime
 
@@ -7,11 +8,13 @@ from src.view import report_view
 from src.view import player_view
 
 from src.controller import json_manager
+from src.controller import check_inputs
 from src.controller.tournament_ctrl import TournamentController
 from src.controller.round_ctrl import RoundController
 from src.controller.player_ctrl import PlayerController
 
 from src.model import serializer
+from src.model.player_mdl import Player
 
 
 class Controller:
@@ -39,14 +42,24 @@ class Controller:
                 self.add_comment_menu()
             elif main_choice == "0":
                 self.debug_menu()
-            elif main_choice == "9":
-                tournament = {"players list": ["marie", "luc", "daniel", "renaud", "jean", "marc"]}
-                self.round_controller.generate_firsts_pairs(tournament)
+            else:
+                main_view.wrong_choice()
 
     def create_tournament_menu(self):
 
-        town = main_view.new_tournament_town()
-        name = main_view.new_tournament_name()
+        while True:
+            town = main_view.new_tournament_town()
+            if check_inputs.alpha(town):
+                break
+            else:
+                main_view.wrong_choice_alpha()
+
+        while True:
+            name = main_view.new_tournament_name()
+            if check_inputs.alpha(name):
+                break
+            else:
+                main_view.wrong_choice_alpha()
 
         tournament_name = f"{town} - {name} {datetime.today().year}"
 
@@ -56,13 +69,52 @@ class Controller:
         self.tournament_controller.create_tournament(tournament_datas, tournament_id)
         main_view.display_tournament_created()
 
+    def create_player_menu(self):
+
+        while True:
+            player_id = player_view.add_player_id()
+            if re.match(r'^[A-Z]{2}\d{5}$', player_id):
+                break
+            else:
+                player_view.wrong_player_id()
+
+        while True:
+            first_name = player_view.add_player_firstname()
+            if check_inputs.alpha(first_name):
+                break
+            else:
+                main_view.wrong_choice_alpha()
+
+        while True:
+            last_name = player_view.add_player_lastname()
+            if check_inputs.alpha(last_name):
+                break
+            else:
+                main_view.wrong_choice_alpha()
+
+        while True:
+            numbers = player_view.add_player_birthdate()
+            if check_inputs.digit(numbers) and len(numbers) == 8:
+                birthdate = numbers[0:2] + "/" + numbers[2:4] + "/" + numbers[4:8]
+                break
+            else:
+                player_view.wrong_birthdate()
+
+        inscription_date = str(datetime.now().strftime("%m/%d/%y"))
+
+        player = Player(player_id, first_name, last_name, birthdate, inscription_date)
+
+        self.player_controller.write_player_datas(player)
+        player_view.display_created()
+        main_view.pause_display()
+
     def player_menu(self):
 
         while True:
             player_menu_choice = player_view.player_menu()
 
             if player_menu_choice == "1":
-                self.player_controller.create_player_manualy()
+                self.create_player_menu()
             elif player_menu_choice == "2":
                 self.add_player_menu()
             elif player_menu_choice == "0":
@@ -105,15 +157,22 @@ class Controller:
         for i in tournaments_datas:
             if i.end_date == "Not finished":
                 not_finished_tournaments.append(i)
-        tournament_choice = int(main_view.display_tournaments(not_finished_tournaments))
 
-        if tournament_choice == 0:
-            self.main_menu()
+        while True:
+            tournament_choice = main_view.display_tournaments(not_finished_tournaments)
 
-        while int(tournament_choice) > len(tournaments_datas):
-            tournament_choice = main_view.wrong_choice()
+            if tournament_choice == 0:
+                self.main_menu()
 
-        choosen_tournament = not_finished_tournaments[tournament_choice - 1]
+            if check_inputs.digit(tournament_choice):
+                if int(tournament_choice) > len(tournaments_datas):
+                    main_view.wrong_choice()
+                else:
+                    break
+            else:
+                main_view.wrong_choice_digit()
+
+        choosen_tournament = not_finished_tournaments[int(tournament_choice) - 1]
 
         # check players nb and if pairs
         insufficient_players = self.round_controller.check_nb_players(choosen_tournament.players_list)
@@ -135,10 +194,14 @@ class Controller:
 
         while True:
             run_another_choice = main_view.run_another_match()
-            if run_another_choice == "1":
-                self.round_controller.choose_match_to_play(choosen_tournament)
-            elif run_another_choice == "2":
-                break
+
+            if check_inputs.digit(run_another_choice) and int(run_another_choice) < 3:
+                if run_another_choice == "1":
+                    self.round_controller.choose_match_to_play(choosen_tournament)
+                elif run_another_choice == "2":
+                    break
+            else:
+                main_view.wrong_choice()
 
     def reports_menu(self):
 

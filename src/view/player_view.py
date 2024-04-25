@@ -17,8 +17,16 @@ def add_player_lastname():
 
 
 def add_player_birthdate():
-    numbers = input("Player birthdate (ex : mmddyyyy) ? ")
-    return numbers[0:2] + "/" + numbers[2:4] + "/" + numbers[4:8]
+    numbers = input("Player birthdate (mmddyyyy) ? ")
+    return numbers
+
+
+def wrong_birthdate():
+    print("Wrong birthdate.")
+
+
+def wrong_player_id():
+    print("Wrong id.")
 
 
 def player_menu():
@@ -32,7 +40,6 @@ def player_menu():
 def choose_tournament(tournaments):
     print("\n")
     for i in range(len(tournaments)):
-
         print(f"[{i + 1}] {tournaments[i].name}")
     return input("\nChoose a tournament : ")
 

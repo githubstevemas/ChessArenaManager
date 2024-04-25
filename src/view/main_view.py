@@ -33,11 +33,16 @@ def add_player_menu():
 
 
 def wrong_choice():
-    return int(input("Wrong choice, please make another one."))
+    print("Wrong choice, please make another one.\n")
 
 
 def wrong_choice_digit():
     print("\nError, answer must be digit.")
+    pause_display()
+
+
+def wrong_choice_alpha():
+    print("\nError, answer must be alpha.")
     pause_display()
 
 

@@ -5,6 +5,7 @@ from src.view import main_view, player_view
 from src.controller import json_manager
 from src.controller.tournament_ctrl import TournamentController
 from src.controller.player_ctrl import PlayerController
+from src.controller import check_inputs
 from src.model.match_mdl import MatchModel
 
 
@@ -100,8 +101,6 @@ class RoundController:
 
                 new_round = self.generate_new_round(new_list)
                 rounds.append(new_round)
-            else:
-                print("pairs not ok")
 
         return rounds
 
@@ -177,12 +176,19 @@ class RoundController:
             if match.status == "not played":
                 nb_matchs_restants += 1
                 matchs_to_play.append(match)
-        match_choice = int(main_view.display_matchs(current_tournament, matchs_to_play))
 
-        while int(match_choice) > len(matchs_to_play):
-            match_choice = main_view.wrong_choice()
+        while True:
+            match_choice = main_view.display_matchs(current_tournament, matchs_to_play)
 
-        index_match = matchs_to_play[match_choice - 1].match_nb
+            if check_inputs.digit(match_choice):
+                if int(match_choice) > len(matchs_to_play):
+                    main_view.wrong_choice()
+                else:
+                    break
+            else:
+                main_view.wrong_choice_digit()
+
+        index_match = matchs_to_play[int(match_choice) - 1].match_nb
 
         self.add_points(current_tournament, current_tournament.rounds_list[-1], index_match)
 
@@ -195,15 +201,21 @@ class RoundController:
             if match.match_nb == index_match:
                 main_view.add_points_view(match)
 
-                winner = input("What is the number of the winning player : ")
-                if int(winner) == 1:
-                    match.points_player1 += 1
-                elif int(winner) == 2:
-                    match.points_player2 += 1
-                elif int(winner) == 0:
-                    match.points_player1 += 0.5
-                    match.points_player2 += 0.5
-                match.status = "over"
+                while True:
+                    winner = input("What is the number of the winning player : ")
+
+                    if check_inputs.digit(winner) and int(winner) < 3:
+                        if int(winner) == 1:
+                            match.points_player1 += 1
+                        elif int(winner) == 2:
+                            match.points_player2 += 1
+                        elif int(winner) == 0:
+                            match.points_player1 += 0.5
+                            match.points_player2 += 0.5
+                        match.status = "over"
+                        break
+                    else:
+                        main_view.wrong_choice()
 
         self.write_round_datas(current_tournament, [round_datas])
         main_view.display_saved()

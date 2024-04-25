@@ -8,6 +8,7 @@ from datetime import datetime
 from src.model.player_mdl import Player
 from src.view import main_view
 from src.view import player_view
+from src.controller import check_inputs
 
 
 class PlayerController:
@@ -49,20 +50,6 @@ class PlayerController:
 
         return self.players
 
-    def create_player_manualy(self):
-
-        player_id = player_view.add_player_id()
-        first_name = player_view.add_player_firstname()
-        last_name = player_view.add_player_lastname()
-        birthdate = player_view.add_player_birthdate()
-        inscription_date = str(datetime.now().strftime("%m/%d/%y"))
-
-        player = Player(player_id, first_name, last_name, birthdate, inscription_date)
-
-        self.write_player_datas(player)
-        player_view.display_created()
-        main_view.pause_display()
-
     def create_players_randomly(self, count):
 
         for i in range(count):
@@ -103,12 +90,27 @@ class PlayerController:
 
         players = self.load_players_datas()
         players_non_added = self.non_added_players(players, tournament)
-        player_choice = player_view.choose_player(players_non_added)
 
-        elements = player_choice.split(',')
         players_list = []
-        for element in elements:
-            players_list.append(element.strip())
+        while True:
+            player_choice = player_view.choose_player(players_non_added)
+            elements = player_choice.split(',')
+            valid_choice = True
+            for element in elements:
+                if check_inputs.digit(element.strip()):
+                    if int(element) < len(players_non_added):
+                        players_list.append(element)
+                    else:
+                        main_view.wrong_choice()
+                        valid_choice = False
+                        break
+                else:
+                    main_view.wrong_choice()
+                    valid_choice = False
+                    break  # Sortir de la boucle for
+
+            if valid_choice:
+                break
 
         for player in players_list:
             player_to_add = players_non_added[int(player) - 1].id
@@ -116,7 +118,6 @@ class PlayerController:
             if tournament.players_list == "None":
                 tournament.players_list = []
             tournament.players_list.append(player_to_add)
-
         return tournament
 
     def sort_players(self, tournament):
