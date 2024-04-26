@@ -10,6 +10,9 @@ from src.view import main_view
 from src.view import player_view
 from src.controller import check_inputs
 
+DATA_PATH = "datas/tournaments/"
+PLAYERS_PATH = f"{DATA_PATH}players.json"
+
 
 class PlayerController:
     def __init__(self):
@@ -19,7 +22,7 @@ class PlayerController:
         """ save players to json file """
 
         datas = []
-        if os.path.exists("datas/tournaments/players.json"):
+        if self.check_players_json():
             datas = self.load_players_datas()
         datas.append(player)
 
@@ -32,13 +35,13 @@ class PlayerController:
                             "inscription date": player.inscription_date}
             serialized_datas.append(player_datas)
 
-        with open("datas/tournaments/players.json", "w") as file:
+        with open(PLAYERS_PATH, "w") as file:
             json.dump(serialized_datas, file)
 
     def load_players_datas(self):
         """ load datas players from json """
 
-        with open("datas/tournaments/players.json", "r") as file:
+        with open(PLAYERS_PATH, "r") as file:
             players_datas = json.load(file)
 
         self.players = []
@@ -80,8 +83,7 @@ class PlayerController:
         player_view.display_created()
         main_view.pause_display()
 
-    @staticmethod
-    def non_added_players(players, tournament):
+    def non_added_players(self, players, tournament):
         """ check if player is already registred to the tournament, return a list of non-added players """
 
         players_non_added = []
@@ -125,27 +127,25 @@ class PlayerController:
             tournament.players_list.append(player_to_add)
         return tournament
 
-    def sort_players(self, tournament):
+    def sort_players(self, sorted_players):
         """ return list of last round players sorted by score """
-
-        players = tournament.rounds_list[-1]
-
-        ids_list = []
-        for match in players:
-            players = match.pair_players
-            scores = [match.points_player1, match.points_player2]
-            ids_list.append((players[0], scores[0]))
-            ids_list.append((players[1], scores[1]))
 
         players = self.load_players_datas()
 
         players_names = []
 
         for player in players:
-            for id_player in ids_list:
+            for id_player in sorted_players:
                 if player.id == id_player[0]:
                     player_infos = [player.first_name, player.last_name, player.id, id_player[1]]
                     players_names.append(player_infos)
         players_names.sort(key=lambda x: x[3], reverse=True)
 
         return players_names
+
+    def check_players_json(self):
+
+        if os.path.exists(PLAYERS_PATH):
+            return True
+        else:
+            return False

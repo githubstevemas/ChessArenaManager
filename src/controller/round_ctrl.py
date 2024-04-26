@@ -56,17 +56,11 @@ class RoundController:
 
     def generate_new_pairs(self, rounds):
 
-        # create players list
-        players_list = []
-        for match in rounds[-1]:
-            players = match.pair_players
-            scores = [match.points_player1, match.points_player2]
-            players_list.append((players[0], scores[0]))
-            players_list.append((players[1], scores[1]))
+        sorted_list = self.sort_players(rounds)
 
-        # sort players by score in dict
+        # sort players in dict
         players_by_score = {}
-        for player, score in players_list:
+        for player, score in sorted_list:
             if score not in players_by_score:
                 players_by_score[score] = []
             players_by_score[score].append(player)
@@ -93,19 +87,34 @@ class RoundController:
             pairs_ok = self.check_already_together(rounds, pairs)
 
             if pairs_ok:
-                # add points to players
-                players_dict = dict(players_list)
-                new_list = []
-                for pair in pairs:
-                    player1, player2 = pair
-                    score1 = players_dict[player1]
-                    score2 = players_dict[player2]
-                    new_list.append([pair, score1, score2])
-
+                new_list = self.reattribute_points(sorted_list, pairs)
                 new_round = self.create_new_round(new_list)
                 rounds.append(new_round)
 
         return rounds
+
+    def sort_players(self, rounds):
+
+        sorted_list = []
+        for match in rounds[-1]:
+            players = match.pair_players
+            scores = [match.points_player1, match.points_player2]
+            sorted_list.append((players[0], scores[0]))
+            sorted_list.append((players[1], scores[1]))
+
+        return sorted_list
+
+    def reattribute_points(self, players_list, pairs):
+
+        players_dict = dict(players_list)
+        new_list = []
+        for pair in pairs:
+            player1, player2 = pair
+            score1 = players_dict[player1]
+            score2 = players_dict[player2]
+            new_list.append([pair, score1, score2])
+
+        return new_list
 
     def create_new_round(self, pairs):
         """ with pair players create new round """
@@ -155,24 +164,22 @@ class RoundController:
         """ with registred players check in players nb is pair """
 
         if len(players_list) % 2 == 0:
-            pair = True
+            return True
         else:
-            pair = False
-
-        return pair
+            player_view.non_pair_list()
+            main_view.pause_display()
+            return False
 
     def check_nb_players(self, players_list):
         """ with registred players check if < 16, return true or false """
 
         if players_list == "None" or len(players_list) < 16:
-            insufficient = True
-
-            return insufficient
+            return True
 
         else:
-            insufficient = False
-
-            return insufficient
+            player_view.insufficient_players()
+            main_view.pause_display()
+            return False
 
     def choose_match_to_play(self, current_tournament):
         """ for a tournament display non-played matchs and ask to play one """

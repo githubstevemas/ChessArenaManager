@@ -16,6 +16,7 @@ from src.controller.player_ctrl import PlayerController
 from src.model import serializer
 from src.model.player_mdl import Player
 
+DATAS_PATH = "datas/tournaments/"
 
 class Controller:
 
@@ -35,7 +36,7 @@ class Controller:
             elif main_choice == "2":
                 self.player_menu()
             elif main_choice == "3":
-                self.tournament_menu()
+                self.run_tournament_menu()
             elif main_choice == "4":
                 self.reports_menu()
             elif main_choice == "5":
@@ -93,9 +94,8 @@ class Controller:
                 main_view.wrong_choice_alpha()
 
         while True:
-            numbers = player_view.add_player_birthdate()
-            if check_inputs.digit(numbers) and len(numbers) == 8:
-                birthdate = numbers[0:2] + "/" + numbers[2:4] + "/" + numbers[4:8]
+            birthdate = player_view.add_player_birthdate()
+            if check_inputs.birthdate(birthdate):
                 break
             else:
                 player_view.wrong_birthdate()
@@ -125,11 +125,11 @@ class Controller:
         """ add player to a non-started tournament """
 
         # check if tournaments and players registred
-        if not os.path.exists("datas/tournaments/tournaments_datas.json"):
+        if self.tournament_controller.check_tournament_json():
             player_view.no_tournament()
             self.main_menu()
 
-        if not os.path.exists("datas/tournaments/players.json"):
+        if self.player_controller.check_players_json():
             main_view.no_players()
             self.main_menu()
 
@@ -149,45 +149,15 @@ class Controller:
         json_manager.dump_tournaments_json(tournaments)
         main_view.display_saved()
 
-    def tournament_menu(self):
+    def run_tournament_menu(self):
         """ choose a non-started tournament to start """
 
-        tournaments_datas = self.tournament_controller.load_tournaments_datas()
-        not_finished_tournaments = []
+        choosen_tournament = self.choose_tournament_menu()
 
-        # choose tournament
-        for i in tournaments_datas:
-            if i.end_date == "Not finished":
-                not_finished_tournaments.append(i)
-
-        while True:
-            tournament_choice = main_view.display_tournaments(not_finished_tournaments)
-
-            if tournament_choice == 0:
-                self.main_menu()
-
-            if check_inputs.digit(tournament_choice):
-                if int(tournament_choice) > len(tournaments_datas):
-                    main_view.wrong_choice()
-                else:
-                    break
-            else:
-                main_view.wrong_choice_digit()
-
-        choosen_tournament = not_finished_tournaments[int(tournament_choice) - 1]
-
-        # check players nb
-        insufficient_players = self.round_controller.check_nb_players(choosen_tournament.players_list)
-        if insufficient_players:
-            player_view.insufficient_players()
-            main_view.pause_display()
+        # check players nb and if pair
+        if self.round_controller.check_nb_players(choosen_tournament.players_list):
             self.main_menu()
-
-        # check if players nb is pair
-        pair_list = self.round_controller.check_pair_players(choosen_tournament.players_list)
-        if not pair_list:
-            player_view.non_pair_list()
-            main_view.pause_display()
+        if not self.round_controller.check_pair_players(choosen_tournament.players_list):
             self.main_menu()
 
         # if rounds list is empty, create the first round
@@ -206,6 +176,30 @@ class Controller:
                     break
             else:
                 main_view.wrong_choice()
+
+    def choose_tournament_menu(self):
+
+        tournaments_datas = self.tournament_controller.load_tournaments_datas()
+        unfinished_tournaments = []
+
+        # choose tournament
+        for i in tournaments_datas:
+            if i.end_date == "Not finished":
+                unfinished_tournaments.append(i)
+
+        while True:
+            tournament_choice = main_view.display_tournaments(unfinished_tournaments)
+            if tournament_choice == 0:
+                self.main_menu()
+            if check_inputs.digit(tournament_choice):
+                if int(tournament_choice) > len(tournaments_datas):
+                    main_view.wrong_choice()
+                else:
+                    break
+            else:
+                main_view.wrong_choice_digit()
+
+        return unfinished_tournaments[int(tournament_choice) - 1]
 
     def reports_menu(self):
 
@@ -229,7 +223,7 @@ class Controller:
     def report_players(self):
         """ display all players sorted by alpha order """
 
-        if not os.path.exists("datas/tournaments/players.json"):
+        if not self.player_controller.check_players_json():
             main_view.no_players()
             self.reports_menu()
 
@@ -248,7 +242,7 @@ class Controller:
     def report_tournament_list(self):
         """ display a list off tournaments names and id """
 
-        if not os.path.exists("datas/tournaments/tournaments_datas.json"):
+        if not self.tournament_controller.check_tournament_json():
             main_view.no_tournament()
             self.reports_menu()
 
@@ -265,7 +259,7 @@ class Controller:
     def report_tournament_infos(self):
         """ display choosen tournament datas """
 
-        if not os.path.exists("datas/tournaments/tournaments_datas.json"):
+        if not self.tournament_controller.check_tournament_json():
             main_view.no_tournament()
             self.reports_menu()
 
@@ -284,7 +278,7 @@ class Controller:
     def report_players_tournament(self):
         """ display players for a choosen tournament """
 
-        if not os.path.exists("datas/tournaments/players.json"):
+        if not self.player_controller.check_players_json():
             main_view.no_players()
             self.reports_menu()
 
@@ -312,7 +306,7 @@ class Controller:
     def report_round_infos(self):
         """ display rounds datas for a choosen tournament """
 
-        if not os.path.exists("datas/tournaments/tournaments_datas.json"):
+        if not self.tournament_controller.check_tournament_json():
             main_view.no_tournament()
             self.reports_menu()
 
@@ -344,7 +338,7 @@ class Controller:
     def report_players_ranking(self):
         """ display players for a choosen tournament, sorted by score """
 
-        if not os.path.exists("datas/tournaments/tournaments_datas.json"):
+        if not self.tournament_controller.check_tournament_json():
             main_view.no_tournament()
             self.reports_menu()
 
@@ -360,7 +354,8 @@ class Controller:
         tournament_choice = main_view.display_tournaments(started_tournaments)
         tournament = started_tournaments[int(tournament_choice) - 1]
 
-        players_names = self.player_controller.sort_players(tournament)
+        sorted_list = self.round_controller.sort_players(tournament.rounds_list)
+        players_names = self.player_controller.sort_players(sorted_list)
 
         report_view.print_players(players_names)
         main_view.pause_display()
@@ -368,7 +363,7 @@ class Controller:
     def add_comment_menu(self):
         """ add comment for a choosen tournament """
 
-        if not os.path.exists("datas/tournaments/tournaments_datas.json"):
+        if not self.tournament_controller.check_tournament_json():
             main_view.no_tournament()
             self.reports_menu()
 
@@ -376,8 +371,6 @@ class Controller:
         tournament_choice = main_view.display_tournaments(tournaments)
         tournament = tournaments[int(tournament_choice) - 1]
         description = main_view.display_add_description()
-
-        """ formater le texte pour json """
 
         for i in range(len(tournaments)):
             if tournaments[i].name == tournament.name:
@@ -398,8 +391,8 @@ class Controller:
                 self.player_controller.create_players_randomly(16)
                 player_view.display_created()
             if debug_choice == "3":
-                for element in os.listdir("datas/tournaments"):
-                    path = os.path.join("datas/tournaments", element)
+                for element in os.listdir({DATAS_PATH}):
+                    path = os.path.join({DATAS_PATH}, element)
                     if os.path.isfile(path):
                         os.remove(path)
                     elif os.path.isdir(path):

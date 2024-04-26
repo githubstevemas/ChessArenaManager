@@ -7,6 +7,9 @@ from src.controller import json_manager
 from src.model.match_mdl import MatchModel
 from src.model.tournament_mdl import Tournament
 
+DATAS_PATH = "datas/tournaments/"
+TOURNAMENT_PATH = f"{DATAS_PATH}tournaments_datas.json"
+
 
 class TournamentController:
     def __init__(self):
@@ -14,8 +17,7 @@ class TournamentController:
         self.matchs = []
         self.rounds = []
 
-    @staticmethod
-    def generate_tournament_name():
+    def generate_tournament_name(self):
         """ return tournament name randomly generated """
 
         town = random.choice(["New York", "Los Angeles", "Chicago", "Houston", "Phoenix",
@@ -24,8 +26,7 @@ class TournamentController:
         tournament_name = f"{town} - {name} {datetime.today().year}"
         return tournament_name, town
 
-    @staticmethod
-    def generate_tournament_id():
+    def generate_tournament_id(self):
         """ generate tournament id like AB12345 """
 
         while True:
@@ -34,7 +35,7 @@ class TournamentController:
                              str(random.randint(100, 999)) +
                              str(datetime.now().year)[-2:])
 
-            if not os.path.exists(f"datas/tournaments/{tournament_id}"):
+            if not os.path.exists(f"{DATAS_PATH}{tournament_id}"):
                 break
 
         return tournament_id
@@ -52,9 +53,9 @@ class TournamentController:
 
         tournament = Tournament(tournament_id, tournament_infos[0], tournament_infos[1])
 
-        os.mkdir(f"datas/tournaments/{tournament.tournament_id}")
+        os.mkdir(f"{DATAS_PATH}{tournament.tournament_id}")
 
-        if os.path.exists("datas/tournaments/tournaments_datas.json"):
+        if self.check_tournament_json():
             tournaments_datas = self.load_tournaments_datas()
             tournaments_datas.append(tournament)
         else:
@@ -62,8 +63,7 @@ class TournamentController:
 
         json_manager.dump_tournaments_json(tournaments_datas)
 
-    @staticmethod
-    def non_started_tournaments(tournaments):
+    def non_started_tournaments(self, tournaments):
         """ return from tournament list all non-started tournaments """
 
         non_started_tournaments = []
@@ -78,7 +78,6 @@ class TournamentController:
         old_tournaments_datas = self.load_tournaments_datas()
 
         if start_date:
-            print("adding strat date")
             for tournament in old_tournaments_datas:
                 if tournament.name == current_tournament.name:
                     tournament.start_date = str(datetime.now().strftime("%m/%d/%y %H:%M"))
@@ -123,3 +122,10 @@ class TournamentController:
             self.tournaments.append(tournament)
 
         return self.tournaments
+
+    def check_tournament_json(self):
+
+        if os.path.exists(TOURNAMENT_PATH):
+            return True
+        else:
+            return False
