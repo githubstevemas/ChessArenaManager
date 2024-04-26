@@ -16,6 +16,7 @@ class TournamentController:
 
     @staticmethod
     def generate_tournament_name():
+        """ return tournament name randomly generated """
 
         town = random.choice(["New York", "Los Angeles", "Chicago", "Houston", "Phoenix",
                               "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Francisco"])
@@ -25,6 +26,7 @@ class TournamentController:
 
     @staticmethod
     def generate_tournament_id():
+        """ generate tournament id like AB12345 """
 
         while True:
             tournament_id = ("T" +
@@ -38,6 +40,7 @@ class TournamentController:
         return tournament_id
 
     def generate_tournament_datas(self):
+        """ run random generation functions """
 
         tournament_id = self.generate_tournament_id()
         tournament_infos = self.generate_tournament_name()
@@ -45,6 +48,7 @@ class TournamentController:
         self.create_tournament(tournament_infos, tournament_id)
 
     def create_tournament(self, tournament_infos, tournament_id):
+        """ with datas, check tournament json and save datas on it """
 
         tournament = Tournament(tournament_id, tournament_infos[0], tournament_infos[1])
 
@@ -60,6 +64,7 @@ class TournamentController:
 
     @staticmethod
     def non_started_tournaments(tournaments):
+        """ return from tournament list all non-started tournaments """
 
         non_started_tournaments = []
         for tournament in tournaments:
@@ -68,6 +73,7 @@ class TournamentController:
         return non_started_tournaments
 
     def add_date(self, current_tournament, start_date):
+        """ add start date or end date to a tournament """
 
         old_tournaments_datas = self.load_tournaments_datas()
 
@@ -84,6 +90,7 @@ class TournamentController:
         json_manager.dump_tournaments_json(old_tournaments_datas)
 
     def load_tournaments_datas(self):
+        """ load tournament json and instantiates objects for tournaments and matchs"""
 
         serialized_datas = json_manager.load_tournaments_json()
         self.tournaments = []

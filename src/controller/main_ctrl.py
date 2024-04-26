@@ -109,6 +109,7 @@ class Controller:
         main_view.pause_display()
 
     def player_menu(self):
+        """ asks the user to choose between creating a player or adding a player to a tournament """
 
         while True:
             player_menu_choice = player_view.player_menu()
@@ -121,6 +122,7 @@ class Controller:
                 self.main_menu()
 
     def add_player_menu(self):
+        """ add player to a non-started tournament """
 
         # check if tournaments and players registred
         if not os.path.exists("datas/tournaments/tournaments_datas.json"):
@@ -146,9 +148,9 @@ class Controller:
         tournaments[tournament_choice - 1] = new_tournament_datas
         json_manager.dump_tournaments_json(tournaments)
         main_view.display_saved()
-        # display players non-added to choosen tournament
 
     def tournament_menu(self):
+        """ choose a non-started tournament to start """
 
         tournaments_datas = self.tournament_controller.load_tournaments_datas()
         not_finished_tournaments = []
@@ -174,27 +176,29 @@ class Controller:
 
         choosen_tournament = not_finished_tournaments[int(tournament_choice) - 1]
 
-        # check players nb and if pairs
+        # check players nb
         insufficient_players = self.round_controller.check_nb_players(choosen_tournament.players_list)
         if insufficient_players:
             player_view.insufficient_players()
             main_view.pause_display()
             self.main_menu()
 
+        # check if players nb is pair
         pair_list = self.round_controller.check_pair_players(choosen_tournament.players_list)
         if not pair_list:
             player_view.non_pair_list()
             main_view.pause_display()
             self.main_menu()
 
+        # if rounds list is empty, create the first round
         if choosen_tournament.rounds_list == "None":
             choosen_tournament = self.round_controller.create_first_round(choosen_tournament)
 
         self.round_controller.choose_match_to_play(choosen_tournament)
 
+        # ask to play another match of the same tournament
         while True:
             run_another_choice = main_view.run_another_match()
-
             if check_inputs.digit(run_another_choice) and int(run_another_choice) < 3:
                 if run_another_choice == "1":
                     self.round_controller.choose_match_to_play(choosen_tournament)
@@ -223,6 +227,7 @@ class Controller:
                 self.main_menu()
 
     def report_players(self):
+        """ display all players sorted by alpha order """
 
         if not os.path.exists("datas/tournaments/players.json"):
             main_view.no_players()
@@ -241,6 +246,7 @@ class Controller:
         main_view.pause_display()
 
     def report_tournament_list(self):
+        """ display a list off tournaments names and id """
 
         if not os.path.exists("datas/tournaments/tournaments_datas.json"):
             main_view.no_tournament()
@@ -257,6 +263,7 @@ class Controller:
         main_view.pause_display()
 
     def report_tournament_infos(self):
+        """ display choosen tournament datas """
 
         if not os.path.exists("datas/tournaments/tournaments_datas.json"):
             main_view.no_tournament()
@@ -275,6 +282,7 @@ class Controller:
         main_view.pause_display()
 
     def report_players_tournament(self):
+        """ display players for a choosen tournament """
 
         if not os.path.exists("datas/tournaments/players.json"):
             main_view.no_players()
@@ -302,6 +310,7 @@ class Controller:
         main_view.pause_display()
 
     def report_round_infos(self):
+        """ display rounds datas for a choosen tournament """
 
         if not os.path.exists("datas/tournaments/tournaments_datas.json"):
             main_view.no_tournament()
@@ -333,6 +342,7 @@ class Controller:
         main_view.pause_display()
 
     def report_players_ranking(self):
+        """ display players for a choosen tournament, sorted by score """
 
         if not os.path.exists("datas/tournaments/tournaments_datas.json"):
             main_view.no_tournament()
@@ -356,6 +366,7 @@ class Controller:
         main_view.pause_display()
 
     def add_comment_menu(self):
+        """ add comment for a choosen tournament """
 
         if not os.path.exists("datas/tournaments/tournaments_datas.json"):
             main_view.no_tournament()
@@ -375,6 +386,7 @@ class Controller:
         json_manager.dump_tournaments_json(tournaments)
 
     def debug_menu(self):
+        """ possibility to create random tournament, random players, erease all datas """
 
         while True:
             debug_choice = main_view.debug_menu()

@@ -44,11 +44,6 @@ def choose_tournament(tournaments):
     return input("\nChoose a tournament : ")
 
 
-def choose_different_tournament():
-    print("\n")
-    print("This tournament is already stared.")
-
-
 def ask_more():
     print("\n")
     print("Add more players to this tournaments ?")

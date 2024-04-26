@@ -16,6 +16,7 @@ class PlayerController:
         self.players = []
 
     def write_player_datas(self, player):
+        """ save players to json file """
 
         datas = []
         if os.path.exists("datas/tournaments/players.json"):
@@ -35,6 +36,7 @@ class PlayerController:
             json.dump(serialized_datas, file)
 
     def load_players_datas(self):
+        """ load datas players from json """
 
         with open("datas/tournaments/players.json", "r") as file:
             players_datas = json.load(file)
@@ -51,6 +53,7 @@ class PlayerController:
         return self.players
 
     def create_players_randomly(self, count):
+        """ create randomly all datas for player creation and save it """
 
         for i in range(count):
             today = datetime.today()
@@ -79,6 +82,7 @@ class PlayerController:
 
     @staticmethod
     def non_added_players(players, tournament):
+        """ check if player is already registred to the tournament, return a list of non-added players """
 
         players_non_added = []
         for player in players:
@@ -87,6 +91,7 @@ class PlayerController:
         return players_non_added
 
     def add_player_to_tournament(self, tournament):
+        """ load player list and ask to add a player to the tournament """
 
         players = self.load_players_datas()
         players_non_added = self.non_added_players(players, tournament)
@@ -121,6 +126,7 @@ class PlayerController:
         return tournament
 
     def sort_players(self, tournament):
+        """ return list of last round players sorted by score """
 
         players = tournament.rounds_list[-1]
 
