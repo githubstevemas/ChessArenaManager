@@ -18,7 +18,7 @@ Each match consists of a pair of players, with results determining points awarde
 The application provides various reports, including lists of players, tournaments, tournament details, player lists per tournament, and round and match lists per tournament. Reports can be exported for future use.
 
 ### - Data Saving and Loading
-Program state can be saved and loaded between user actions.
+Program state is saved and loaded between user actions.
 
 ### - Code Structure and Maintenance
 The code follows the Model-View-Controller (MVC) design pattern, with three main packages: models, views, and controllers.
