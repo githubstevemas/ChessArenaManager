@@ -28,10 +28,6 @@ def reports_menu():
     return input("Your choice ? ")
 
 
-def add_player_menu():
-    pass
-
-
 def wrong_choice():
     print("Wrong choice, please make another one.\n")
 
@@ -94,11 +90,10 @@ def all_tournaments_started():
 
 def display_matchs(tournaments_datas, matchs_to_play):
     print("\n")
-    print(f"Round number {tournaments_datas.current_round}\n")
+    print(f"Matchs from round number {tournaments_datas.current_round} :\n")
     for j in range(len(matchs_to_play)):
         print(f"[{j + 1}] {matchs_to_play[j].pair_players[0]} vs {matchs_to_play[j].pair_players[1]}")
-    print("\n[0] Return\n")
-    return input("Choose a match : ")
+    return input("\nChoose a match : ")
 
 
 def display_round(rounds_nb):
@@ -133,6 +128,12 @@ def no_tournament():
 def no_started_tournament():
     print("\n")
     print("No tournament started yet.")
+    pause_display()
+
+
+def no_player_to_add():
+    print("\n")
+    print("All players have already been added.")
     pause_display()
 
 

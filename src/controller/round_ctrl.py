@@ -1,25 +1,25 @@
 import random
 
-from src.view import main_view, player_view
-
-from src.controller import json_manager
-from src.controller.tournament_ctrl import TournamentController
-from src.controller.player_ctrl import PlayerController
-from src.controller import check_inputs
 from src.model.match_mdl import MatchModel
+from src.view import main_view
+from src.view import player_view
+from src.controller import check_inputs
+from src.controller import json_manager
+from src.controller.player_ctrl import PlayerController
+from src.controller.tournament_ctrl import TournamentController
 
 
 class RoundController:
     def __init__(self):
 
-        self.tournament_controller = TournamentController()
-        self.player_controller = PlayerController()
+        self.tournament_ctrl = TournamentController()
+        self.player_ctrl = PlayerController()
         self.rounds = []
 
     def write_round_datas(self, tournament_datas, round_datas):
-        """ change tournament rounds list for a tournament and run json save """
+        """ change tournament rounds list for a tournament, run json save and return tournament datas """
 
-        tournaments = self.tournament_controller.load_tournaments_datas()
+        tournaments = self.tournament_ctrl.load_tournaments_datas()
 
         for i in range(len(tournaments)):
             if tournaments[i].name == tournament_datas.name:
@@ -46,7 +46,7 @@ class RoundController:
         return round_list
 
     def increment_round(self, current_tournament, old_tournaments_datas):
-        """ increment current round number in tournament datas """
+        """ increment current round number and return tournament datas """
 
         for tournament in old_tournaments_datas:
             if tournament.name == current_tournament.name:
@@ -55,6 +55,10 @@ class RoundController:
         return old_tournaments_datas
 
     def generate_new_pairs(self, rounds):
+        """ with the round data, sorts the players by score,
+        makes pairs with them, makes pairs with the remaining players
+        and checks if the new pairs have not already been created.
+        Finaly, return new round """
 
         sorted_list = self.sort_players(rounds)
 
@@ -94,6 +98,7 @@ class RoundController:
         return rounds
 
     def sort_players(self, rounds):
+        """ with rounds datas sort players by score and return players list """
 
         sorted_list = []
         for match in rounds[-1]:
@@ -105,9 +110,11 @@ class RoundController:
         return sorted_list
 
     def reattribute_points(self, players_list, pairs):
+        """ reattribute players points to the new created pairs """
 
         players_dict = dict(players_list)
         new_list = []
+
         for pair in pairs:
             player1, player2 = pair
             score1 = players_dict[player1]
@@ -117,28 +124,27 @@ class RoundController:
         return new_list
 
     def create_new_round(self, pairs):
-        """ with pair players create new round """
+        """ with pair players create new round and return matchs objects list """
 
         nb_pairs = len(pairs)
         matchs_datas = []
 
         for i in range(int(nb_pairs)):
             match = MatchModel(i + 1, "not played", pairs[i][0], pairs[i][1], pairs[i][2])
-
             matchs_datas.append(match)
 
         return matchs_datas
 
     def check_already_together(self, rounds, new_pairs):
-        """ with new pairs check in rounds list if pair players in """
+        """ with new pairs check in rounds if pairs already exists and return boolean """
 
+        print("checking for new pairs")
         old_pairs = []
         for matches in rounds:
             for pair in matches:
                 old_pairs.append(frozenset(pair.pair_players))
 
         old_pairs_set = set(old_pairs)
-
         new_pairs_set = {frozenset(pair) for pair in new_pairs}
 
         for new_pair_set in new_pairs_set:
@@ -153,7 +159,7 @@ class RoundController:
         round1 = self.generate_firsts_pairs(current_tournament)
         self.rounds.append(round1)
         tournaments_datas = self.write_round_datas(current_tournament, [round1])
-        self.tournament_controller.add_date(current_tournament, start_date=True)
+        self.tournament_ctrl.add_date(current_tournament, start_date=True)
 
         # return current tournament with new datas
         for i in range(len(tournaments_datas)):
@@ -161,7 +167,7 @@ class RoundController:
                 return tournaments_datas[i]
 
     def check_pair_players(self, players_list):
-        """ with registred players check in players nb is pair """
+        """ with registred players attribute check if players nb is pair and return boolean """
 
         if len(players_list) % 2 == 0:
             return True
@@ -171,15 +177,14 @@ class RoundController:
             return False
 
     def check_nb_players(self, players_list):
-        """ with registred players check if < 16, return true or false """
+        """ with registred players attribute check if < 16, return boolean """
 
         if players_list == "None" or len(players_list) < 16:
-            return True
-
-        else:
             player_view.insufficient_players()
             main_view.pause_display()
             return False
+        else:
+            return True
 
     def choose_match_to_play(self, current_tournament):
         """ for a tournament display non-played matchs and ask to play one """
@@ -188,7 +193,6 @@ class RoundController:
         matchs_to_play = []
 
         for match in current_tournament.rounds_list[-1]:
-
             if match.status == "not played":
                 nb_matchs_restants += 1
                 matchs_to_play.append(match)
@@ -243,7 +247,7 @@ class RoundController:
         main_view.round_over(current_tournament)
 
         if current_tournament.current_round != 4:
-            old_tournaments_datas = self.tournament_controller.load_tournaments_datas()
+            old_tournaments_datas = self.tournament_ctrl.load_tournaments_datas()
 
             # change current round
             new_tournaments_datas = self.increment_round(current_tournament, old_tournaments_datas)
@@ -252,7 +256,6 @@ class RoundController:
             new_rounds = self.generate_new_pairs(current_tournament.rounds_list)
 
             current_tournament.current_round += 1
-            # a ameliorer
             self.write_round_datas(current_tournament, new_rounds)
 
         else:
@@ -262,8 +265,8 @@ class RoundController:
         """ display tournament over, add end date and display sorted winners """
 
         main_view.display_tournament_over()
-        self.tournament_controller.add_date(current_tournament, start_date=False)
+        self.tournament_ctrl.add_date(current_tournament, start_date=False)
 
-        final_list = self.player_controller.sort_players(current_tournament)
+        final_list = self.sort_players(current_tournament.rounds_list[-1])
         player_view.display_winners(final_list)
         main_view.pause_display()

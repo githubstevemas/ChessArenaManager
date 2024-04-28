@@ -67,7 +67,7 @@ def non_pair_list():
 
 def no_tournament():
     print("\n")
-    print("No tournament are created.")
+    print("No tournament created.")
 
 
 def insufficient_players():

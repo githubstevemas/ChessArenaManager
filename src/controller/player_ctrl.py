@@ -1,10 +1,11 @@
-import json
 import os
+import json
 import random
 import string
 
 from datetime import datetime
 
+from src.model import player_mdl
 from src.model.player_mdl import Player
 from src.view import main_view
 from src.view import player_view
@@ -28,29 +29,21 @@ class PlayerController:
 
         serialized_datas = []
         for player in datas:
-            player_datas = {"id": player.id,
-                            "first name": player.first_name,
-                            "last name": player.last_name,
-                            "birthdate": player.birthdate,
-                            "inscription date": player.inscription_date}
+            player_datas = player_mdl.serialize(player)
             serialized_datas.append(player_datas)
 
         with open(PLAYERS_PATH, "w") as file:
             json.dump(serialized_datas, file)
 
     def load_players_datas(self):
-        """ load datas players from json """
+        """ load datas players from json and return players objets"""
 
         with open(PLAYERS_PATH, "r") as file:
             players_datas = json.load(file)
 
         self.players = []
-        for data in players_datas:
-            player = Player(data["id"],
-                            data["first name"],
-                            data["last name"],
-                            data["birthdate"],
-                            data["inscription date"])
+        for player_datas in players_datas:
+            player = player_mdl.deserialize(player_datas)
             self.players.append(player)
 
         return self.players
@@ -61,11 +54,11 @@ class PlayerController:
         for i in range(count):
             today = datetime.today()
             first_name_list = ["James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda",
-                               "William",
-                               "Elizabeth", "David", "Susan", "Joseph", "Jessica", "Charles", "Karen"]
+                               "William", "Elizabeth", "David", "Susan", "Joseph", "Jessica", "Charles", "Karen",
+                               "Christopher", "Kimberly", "Matthew", "Michelle", "Brian", "Ashley", "Daniel", "Megan"]
             last_name_list = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Garcia",
-                              "Rodriguez",
-                              "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas"]
+                              "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson",
+                              "Thomas", "Taylor", "Moore", "Jackson", "White", "Harris", "Martin", "Thompson", "Lewis"]
             year_birth = today.year - random.randint(16, 80)
             month_birth = random.randint(1, 12)
             day_birth = random.randint(1, 28)
@@ -93,10 +86,14 @@ class PlayerController:
         return players_non_added
 
     def add_player_to_tournament(self, tournament):
-        """ load player list and ask to add a player to the tournament """
+        """ load player list, ask to add a player and return tournament datas """
 
         players = self.load_players_datas()
         players_non_added = self.non_added_players(players, tournament)
+
+        if not players_non_added:
+            main_view.no_player_to_add()
+            return False
 
         players_list = []
         while True:
@@ -105,7 +102,7 @@ class PlayerController:
             valid_choice = True
             for element in elements:
                 if check_inputs.digit(element.strip()):
-                    if int(element) < len(players_non_added):
+                    if int(element) < len(players_non_added) + 1:
                         players_list.append(element)
                     else:
                         main_view.wrong_choice()
@@ -144,6 +141,7 @@ class PlayerController:
         return players_names
 
     def check_players_json(self):
+        """ check if there are already registered players and return boolean """
 
         if os.path.exists(PLAYERS_PATH):
             return True
