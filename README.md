@@ -41,8 +41,15 @@ Once the code has been downloaded, go to the project directory and enter the fol
   `python main.py` *run the code*
 
   `deactivate` *when over, deactivate the environement*
-  
 
+## How to use Flake8
+
+Once you are in the directory containing your Python files.
+
+Run Flake8 by executing the following command:
+  
+  `flake8 --format=html --htmldir=flake-report .`
+  
 > [!NOTE]
 > The commands above are for Windows use. Go to the official [Python documentation](https://docs.python.org/3/tutorial/venv.html) for MacOS or Unix usage.
 
