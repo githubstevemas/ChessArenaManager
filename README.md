@@ -44,9 +44,7 @@ Once the code has been downloaded, go to the project directory and enter the fol
 
 ## How to use Flake8
 
-Once you are in the directory containing your Python files.
-
-Run Flake8 by executing the following command:
+Once you are in the directory containing the project, run Flake8 by executing the following command:
   
   `flake8 --format=html --htmldir=flake-report .`
   
